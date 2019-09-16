@@ -22,15 +22,19 @@ namespace UTTT.Games.Uttt
                 throw new Exception("Field is not in the active area.");
 
             var selectedArea = State.Areas[area];
-            var selectedField = selectedArea.Fields[field];
+            if (selectedArea.Owner != GameState.Owner.None)
+                throw new Exception("Area is already won.");
 
+            var selectedField = selectedArea.Fields[field];
             if (selectedField.Owner != GameState.Owner.None)
                 throw new Exception("Field has already been claimed.");
 
             selectedField.Owner = ResolveOwner(playerId);
 
-            State.ActiveArea = field;
             CalculateGameState(selectedArea);
+
+            var nextArea = State.Areas[field];
+            State.ActiveArea = nextArea.Owner == GameState.Owner.None ? field : -1;
 
             SetNextPlayer(playerId);
         }

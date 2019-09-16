@@ -1,6 +1,6 @@
 ﻿"use strict";
 
-var connection = new signalR.HubConnectionBuilder().withUrl("/gameHub").build();
+var connection = new signalR.HubConnectionBuilder().withUrl("/utttHub").build();
 var connectionId;
 
 $(document).ready(function() {
@@ -34,10 +34,10 @@ function JoinGame() {
 		return;
 	}
 
-    connection.invoke("Join", gameId, name).then(function() {
-	    $("#game-selector").addClass("hidden");
-	    $("#game").removeClass("hidden");
-    }).catch(function(err) {
+	connection.invoke("Join", gameId, name).then(function() {
+		$("#game-selector").addClass("hidden");
+		$("#game").removeClass("hidden");
+	}).catch(function(err) {
 		return console.error(err.toString());
 	});
 }
@@ -63,11 +63,11 @@ function updateState(state) {
 			board.children().eq(state.activeArea).addClass("active");
 		else
 			board.addClass("active");
-    }
+	}
 
-    var player1 = state.player1.name ? state.player1.name : '';
-    var player2 = state.player2.name ? state.player2.name : '';
-    
+	const player1 = state.player1.name ? state.player1.name : "";
+	const player2 = state.player2.name ? state.player2.name : "";
+
 	$("#players").text(`${player1} - ${player2}`);
 
 	if (state.status > 1) {
