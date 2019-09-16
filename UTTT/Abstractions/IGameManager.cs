@@ -1,15 +1,18 @@
 ﻿using System.Collections.Generic;
-using UTTT.Business;
-using UTTT.Models;
+using UTTT.Games.Uttt;
 
 namespace UTTT.Abstractions
 {
     public interface IGameManager
     {
-        IDictionary<string, Game> Games { get; }
+        IList<GameEngine> Games { get; }
 
-        IDictionary<string, string> Players { get; }
+        GameEngine CreateGame(string contextConnectionId, string playerName);
 
-        Game CreateGame(string gameId);
+        GameEngine JoinGame(string gameId, string contextConnectionId, string playerName);
+
+        GameEngine GetGameById(string gameId);
+
+        GameEngine GetGameForPlayer(string playerId);
     }
 }

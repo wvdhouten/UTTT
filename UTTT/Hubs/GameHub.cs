@@ -4,13 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using UTTT.Abstractions;
-using UTTT.Models;
+using UTTT.Games.Uttt.Models;
 
 namespace UTTT.Hubs
 {
     public class GameHub : Hub
     {
-        private static readonly Random Random = new Random();
         private readonly IGameManager _manager;
 
         public GameHub(IGameManager manager)
@@ -18,54 +17,39 @@ namespace UTTT.Hubs
             _manager = manager;
         }
 
-        public void UpdateName(string name)
-        {
-            if (_manager.Players.ContainsKey(Context.ConnectionId))
-            {
-                _manager.Players[Context.ConnectionId] = name;
-                return;
-            }
-
-            _manager.Players.Add(Context.ConnectionId, name);
-        }
-
         public IDictionary<string, string> GetGames()
         {
-            return _manager.Games.Where(x => x.Value.State.Status == GameState.GameStatus.Open).ToDictionary(x => x.Key, x => _manager.Players[x.Value.Player1]);
+            return _manager.Games.Where(x => x.State.Winner != GameState.Owner.None)
+                .ToDictionary(x => x.State.Id, x => x.State.Player1.Name);
+        }
+
+        public async Task Create(string playerName)
+        {
+            var game = _manager.CreateGame(Context.ConnectionId, playerName);
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, game.State.Id);
+            await Clients.All.SendAsync("UpdateGames", GetGames());
         }
 
         public async Task Join(string gameId, string playerName)
         {
-            if (_manager.Games.Any(x => x.Value.Player1 == Context.ConnectionId || x.Value.Player2 == Context.ConnectionId))
-            {
-                return;
-            }
+            var game = _manager.JoinGame(gameId, Context.ConnectionId, playerName);
 
-            UpdateName(playerName);
+            await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
+            await Clients.All.SendAsync("UpdateGames", GetGames());
 
-            if (string.IsNullOrEmpty(gameId))
-                gameId = RandomString(8);
-
-            var game = _manager.Games.ContainsKey(gameId)
-                ? _manager.Games[gameId]
-                : _manager.CreateGame(gameId);
-
-            var joined = game.Join(Context.ConnectionId);
-            if (joined)
-            {
-                await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-                await Clients.All.SendAsync("UpdateGames", GetGames());
-                await Clients.Group(gameId).SendAsync("Update", game.State);
-            }
+            await Clients.Group(gameId).SendAsync("Update", game.State);
         }
 
         public async Task ClaimField(int area, int field)
         {
-            var game = _manager.Games.SingleOrDefault(x => x.Value.Player1 == Context.ConnectionId || x.Value.Player2 == Context.ConnectionId);
+            var game = _manager.GetGameForPlayer(Context.ConnectionId);
+            if (game == null)
+                return;
 
-            game.Value.ClaimField(Context.ConnectionId, area, field);
+            game.ClaimField(Context.ConnectionId, area, field);
 
-            await Clients.Group(game.Key).SendAsync("Update", game.Value.State);
+            await Clients.Group(game.State.Id).SendAsync("Update", game.State);
         }
 
         public string GetConnectionId()
@@ -74,15 +58,10 @@ namespace UTTT.Hubs
         }
 
         public override Task OnDisconnectedAsync(Exception exception)
-        { 
-            return base.OnDisconnectedAsync(exception);
-        }
-
-        public static string RandomString(int length)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[Random.Next(s.Length)]).ToArray());
+            // TODO: Close games and what not.
+
+            return base.OnDisconnectedAsync(exception);
         }
     }
 }

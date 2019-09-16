@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace UTTT.Models
+namespace UTTT.Games.Uttt.Models
 {
     public class Area : Field
     {
