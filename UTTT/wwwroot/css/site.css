@@ -1,14 +1,46 @@
-﻿#game-selector {
+﻿@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
+
+body {
+    font-family: 'Open Sans', sans-serif;
+}
+
+header {
     text-align: center;
+}
+
+#game-selector {
+    text-align: center;
+}
+
+#game-selector input[type='text'] {
+    border: 1px solid #000;
+    border-radius: 8px;
+    padding: 6px;
+    margin-bottom: 8px;
+}
+
+    #game-selector label {
+        margin-bottom: 4px;
+    }
+
+#game-selector button {
+    background: white;
+    border: 1px solid #000;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+#games label {
+    display: inline-block
 }
 
 #board {
     border: 2px solid #000;
     display: grid;
-    grid-template-columns: auto auto auto;
-    height: 500px;
+    grid-template-columns: 166px 166px 166px;
+    width: 498px;
+    height: 498px;
     margin: auto;
-    width: 500px;
 }
 
 .hidden {
@@ -23,10 +55,12 @@
 .area {
     border-color: #444;
     display: grid;
-    grid-template-columns: auto auto auto;
+    grid-template-columns: 54px 54px 54px;
 }
 
 .field {
+    width: 50px;
+    height: 50px;
     border-color: #999;
     cursor: pointer;
 }

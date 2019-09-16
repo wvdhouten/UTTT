@@ -19,49 +19,85 @@ namespace UTTT.Hubs
 
         public IDictionary<string, string> GetGames()
         {
-            return _manager.Games.Where(x => x.State.Winner != GameState.Owner.None)
+            return _manager.Games.Where(x => x.State.Winner == GameState.Owner.None)
                 .ToDictionary(x => x.State.Id, x => x.State.Player1.Name);
         }
 
         public async Task Create(string playerName)
         {
-            var game = _manager.CreateGame(Context.ConnectionId, playerName);
+            try
+            {
+                var game = _manager.CreateGame(Context.ConnectionId, playerName);
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, game.State.Id);
-            await Clients.All.SendAsync("UpdateGames", GetGames());
+                await Groups.AddToGroupAsync(Context.ConnectionId, game.State.Id);
+                await Clients.All.SendAsync("UpdateGames", GetGames());
+            }
+            catch (Exception e)
+            {
+                throw new HubException(e.Message, e);
+            }
         }
 
         public async Task Join(string gameId, string playerName)
         {
-            var game = _manager.JoinGame(gameId, Context.ConnectionId, playerName);
+            try
+            {
+                var game = _manager.JoinGame(gameId, Context.ConnectionId, playerName);
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-            await Clients.All.SendAsync("UpdateGames", GetGames());
+                await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
+                await Clients.All.SendAsync("UpdateGames", GetGames());
 
-            await Clients.Group(gameId).SendAsync("Update", game.State);
+                await Clients.Group(gameId).SendAsync("Update", game.State);
+            }
+            catch (Exception e)
+            {
+                throw new HubException(e.Message, e);
+            }
         }
 
         public async Task ClaimField(int area, int field)
         {
-            var game = _manager.GetGameForPlayer(Context.ConnectionId);
-            if (game == null)
-                return;
+            try
+            {
+                var game = _manager.GetGameForPlayer(Context.ConnectionId);
+                if (game == null)
+                    return;
 
-            game.ClaimField(Context.ConnectionId, area, field);
+                game.ClaimField(Context.ConnectionId, area, field);
 
-            await Clients.Group(game.State.Id).SendAsync("Update", game.State);
+                await Clients.Group(game.State.Id).SendAsync("Update", game.State);
+            }
+            catch (Exception e)
+            {
+                throw new HubException(e.Message, e);
+            }
         }
 
         public string GetConnectionId()
         {
-            return Context.ConnectionId;
+            try
+            {
+                return Context.ConnectionId;
+            }
+            catch (Exception e)
+            {
+                throw new HubException(e.Message, e);
+            }
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
-            // TODO: Close games and what not.
+            var game = _manager.GetGameForPlayer(Context.ConnectionId);
+            if (game == null) { 
+                await base.OnDisconnectedAsync(exception);
+                return;
+            }
 
-            return base.OnDisconnectedAsync(exception);
+            _manager.Games.Remove(game);
+            await Clients.Group(game.State.Id).SendAsync("Disconnected", game.State);
+            await Clients.All.SendAsync("UpdateGames", GetGames());
+
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }

@@ -50,7 +50,7 @@ namespace UTTT.Services
 
         public GameEngine GetGameForPlayer(string playerId)
         {
-            return Games.FirstOrDefault(value => value.State.Player1.Id == playerId || value.State.Player2.Id == playerId);
+            return Games.FirstOrDefault(value => value.State.Player1?.Id == playerId || value.State.Player2?.Id == playerId);
         }
     }
 }
