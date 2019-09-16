@@ -4,31 +4,40 @@ var connection = new signalR.HubConnectionBuilder().withUrl('/gameHub').build();
 var connectionId;
 
 $(document).ready(function() {
-    $('#join-button').on('click', () => joinGame());
-
-    $('#board').on('click',
-        '.field',
-        function() {
-            makeMove($(this));
-        });
+    $('#create-game-button').on('click', () => JoinGame(true));
+    $('#join-game-button').on('click', () => JoinGame(false));
+    $('#board').on('click', '.field', function () { claimField($(this)); });
 });
 
-function joinGame() {
-    const gameId = $('#game-id').val();
+function JoinGame(newGame) {
+	var gameId = '';
+    if (!newGame) {
+        gameId = $("input[name='game']:checked").val();
+        if (!gameId) {
+		    return;
+        }
+    }
 
-    connection.invoke('Join', gameId).catch(function(err) {
+    var name = $("#name").val();
+    if (!name) {
+	    return;
+    }
+
+    connection.invoke('Join', gameId, name).catch(function(err) {
         return console.error(err.toString());
     });
+
+    $('#game-selector').addClass('hidden');
+    $('#board').removeClass('hidden');
 }
 
-function makeMove(field) {
-    const gameId = $('#game-id').val();
-    const area = field.parent();
-
+function claimField(field) {
     const fieldIndex = field.index();
-    const areaIndex = area.index();
 
-    connection.invoke('ClaimField', gameId, areaIndex, fieldIndex).catch(function(err) {
+	const area = field.parent();
+    const areaIndex = area.index();
+    
+    connection.invoke('ClaimField', areaIndex, fieldIndex).catch(function(err) {
         return console.error(err.toString());
     });
 }
@@ -70,9 +79,22 @@ function updateState(state) {
     };
 }
 
-connection.on('Joined',
-    function(state) {
-        updateState(state);
+function updateGames(games) {
+	var gamesElement = $('#games');
+    gamesElement.empty();
+
+    for (let game in games) {
+        if (!games.hasOwnProperty(game)) {
+			return;
+		}
+
+        $(`<label><input type="radio" name="game" value="${game}">${games[game]}</label>`).appendTo(gamesElement);
+	}
+}
+
+connection.on('UpdateGames',
+    function(games) {
+        updateGames(games);
     });
 
 connection.on('Update',
@@ -81,11 +103,15 @@ connection.on('Update',
     });
 
 connection.start().then(function () {
-    connection.invoke('getConnectionId')
+    connection.invoke('GetConnectionId')
         .then(function (id) {
             connectionId = id;
             console.log(`connected: ${id}`);
         });
+    connection.invoke('GetGames')
+	    .then(function (games) {
+		    updateGames(games);
+	    });
 }).catch(function(err) {
     return console.error(err.toString());
 });

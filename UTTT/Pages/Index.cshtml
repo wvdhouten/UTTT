@@ -1,10 +1,12 @@
 ﻿@page
-<div id="config">
-    <input id="game-id" type="text" />
-    <button id="join-button" type="button">JOIN</button>
-</div>
-<br/>
-<div id="board">
+    <div id="game-selector">
+        <input id="name" type="text" placeholder="Name" />
+        <div id="games"></div>
+        <button id="join-game-button" type="button">Join Game</button>
+        <br />
+        <button id="create-game-button" type="button">Create New Game</button>
+    </div>
+<div id="board" class="hidden">
     <div class="area">
         <div class="field">
         </div>

@@ -1,6 +1,7 @@
 ﻿using System;
+using UTTT.Models;
 
-namespace UTTT.Models
+namespace UTTT.Business
 {
     public class Game
     {
