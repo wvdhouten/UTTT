@@ -51,7 +51,7 @@ namespace UTTT
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-            app.UseSignalR(routes => { routes.MapHub<GameHub>("/gameHub"); });
+            app.UseSignalR(routes => { routes.MapHub<UtttHub>("/utttHub"); });
 
             app.UseMvc();
         }

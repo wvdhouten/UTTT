@@ -8,11 +8,11 @@ using UTTT.Games.Uttt.Models;
 
 namespace UTTT.Hubs
 {
-    public class GameHub : Hub
+    public class UtttHub : Hub
     {
         private readonly IGameManager _manager;
 
-        public GameHub(IGameManager manager)
+        public UtttHub(IGameManager manager)
         {
             _manager = manager;
         }

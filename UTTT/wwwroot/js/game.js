@@ -70,9 +70,7 @@ function updateState(state) {
 
 	$("#players").text(`${player1} - ${player2}`);
 
-	if (state.status > 1) {
-		board.attr("owner", state.status - 1);
-	}
+	board.attr("owner", state.winner);
 
 	for (let areaIndex in state.areas) {
 		if (!state.areas.hasOwnProperty(areaIndex)) {
