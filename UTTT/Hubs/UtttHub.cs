@@ -94,7 +94,7 @@ namespace UTTT.Hubs
             }
 
             _manager.Games.Remove(game);
-            await Clients.Group(game.State.Id).SendAsync("Disconnected", game.State);
+            await Clients.OthersInGroup(game.State.Id).SendAsync("Disconnected", game.State);
             await Clients.All.SendAsync("UpdateGames", GetGames());
 
             await base.OnDisconnectedAsync(exception);
