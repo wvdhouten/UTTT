@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace UTTT.Games.Uttt.Models
+﻿namespace UTTT.Games.Uttt.Models
 {
     public class GameState
     {
@@ -11,14 +9,9 @@ namespace UTTT.Games.Uttt.Models
             Two = 2
         }
 
-        public GameState()
-        {
-            for (var i = 0; i < 9; i++) Areas.Add(i, new Area());
-        }
-
         public string Id { get; set; }
 
-        public IDictionary<int, Area> Areas { get; } = new Dictionary<int, Area>();
+        public Board Board { get; set; } = new Board();
 
         public Player Player1 { get; set; }
 

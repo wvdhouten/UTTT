@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using UTTT.Abstractions;
 using UTTT.Games.Uttt.Models;
 
-namespace UTTT.Hubs
+namespace UTTT.Games.Uttt
 {
     public class UtttHub : Hub
     {
@@ -23,7 +23,7 @@ namespace UTTT.Hubs
                 .ToDictionary(x => x.State.Id, x => x.State.Player1.Name);
         }
 
-        public async Task Create(string playerName)
+        public async Task NewGame(string playerName)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace UTTT.Hubs
             }
         }
 
-        public async Task Join(string gameId, string playerName)
+        public async Task JoinGame(string gameId, string playerName)
         {
             try
             {

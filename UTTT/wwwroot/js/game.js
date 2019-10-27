@@ -4,18 +4,21 @@ var connection = new signalR.HubConnectionBuilder().withUrl('/utttHub').build();
 var connectionId;
 
 $(document).ready(function() {
-    $('#new-game-button').on('click', () => createGame());
     $('#games').on('click', '.join-game-button', function () { joinGame(this); });
     $('#board').on('click', '.field', function () { claimField($(this))});
 });
 
-function createGame() {
-    const name = getPlayerName();
+function newGame() {
+    const name = promptName();
+    if (!name) {
+        return;
+    }
 
-    connection.invoke('Create', name).then(function() {
+    connection.invoke('NewGame', name).then(function() {
         $('#game-selector').addClass('hidden');
         $('#game').removeClass('hidden');
-    }).catch(function(err) {
+    }).catch(function (err) {
+        // TODO: Inform user.
         return console.error(err.toString());
     });
 }
@@ -26,17 +29,21 @@ function joinGame(button) {
         return;
     }
 
-    const name = getPlayerName();
+    const name = promptName();
+    if (!name) {
+        return;
+    }
 
-    connection.invoke('Join', gameId, name).then(function() {
+    connection.invoke('JoinGame', gameId, name).then(function() {
         $('#game-selector').addClass('hidden');
         $('#game').removeClass('hidden');
-    }).catch(function(err) {
+    }).catch(function (err) {
+        // TODO: Inform user.
         return console.error(err.toString());
     });
 }
 
-function getPlayerName() {
+function promptName() {
     return prompt('Name');
 }
 
@@ -52,31 +59,29 @@ function claimField(field) {
 }
 
 function updateState(state) {
-    const board = $('#board');
+    updatePlayers(state);
+    updateBoard(state);
+    updateActivity(state);
+}
 
-    board.removeClass('active');
-    board.children().removeClass('active');
-    if (state.activePlayer === connectionId && state.winner === 0) {
-        if (state.activeArea >= 0)
-            board.children().eq(state.activeArea).addClass('active');
-        else
-            board.addClass('active');
-    }
-
+function updatePlayers(state) {
     const player1 = state.player1.name ? state.player1.name : '';
     const player2 = state.player2.name ? state.player2.name : '';
 
     $('#players').text(`${player1} - ${player2}`);
+}
 
+function updateBoard(state) {
+    const board = $('#board');
     board.attr('owner', state.winner);
 
-    for (let areaIndex in state.areas) {
-        if (!state.areas.hasOwnProperty(areaIndex)) {
+    for (let areaIndex in state.board) {
+        if (!state.board.hasOwnProperty(areaIndex)) {
             return;
         }
 
         const area = board.children().eq(areaIndex);
-        const areaState = state.areas[areaIndex];
+        const areaState = state.board[areaIndex];
         area.attr('owner', areaState['owner']);
 
         const fields = areaState['fields'];
@@ -89,6 +94,24 @@ function updateState(state) {
             field.attr('owner', fields[index]['owner']);
         }
     };
+}
+
+function updateActivity(state) {
+    const board = $('#board');
+
+    board.removeClass('active');
+    board.children().removeClass('active');
+    if (state.activePlayer === connectionId && state.winner === 0) {
+        if (state.activeArea >= 0)
+            board.children().eq(state.activeArea).addClass('active');
+        else
+            board.addClass('active');
+        showMessage('It\'s your turn!');
+    } else if (state.winner === 1) {
+        showMessage(`${state.player1.name} Wins!`);
+    } else if (state.winner === 2) {
+        showMessage(`${state.player2.name} Wins!`);
+    }
 }
 
 function updateGames(games) {

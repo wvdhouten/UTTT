@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using UTTT.Abstractions;
-using UTTT.Hubs;
+using UTTT.Games.Uttt;
 using UTTT.Services;
 
 namespace UTTT

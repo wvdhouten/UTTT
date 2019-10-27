@@ -1,5 +1,7 @@
 ﻿@import url('https://fonts.googleapis.com/css?family=Open+Sans&display=swap');
 
+/* SITE */
+
 body {
     background-color: #8ebba2;
     background-image:
@@ -14,9 +16,11 @@ body {
     padding: 0;
 }
 
-header { text-align: center; }
+header, footer { text-align: center; }
 
-h1, h2 { text-shadow: #fff 0 0 15px; }
+h1, h2, h3 { text-shadow: #fff 0 0 15px; }
+
+/* UTTT */
 
 #game-selector { text-align: center; }
 
@@ -31,11 +35,14 @@ h1, h2 { text-shadow: #fff 0 0 15px; }
 
 #game-selector button {
     background: white;
-    border: 1px solid #000;
+    border: solid #000;
+    border-width: 1px 4px 2px 1px;
     border-radius: 8px;
     margin-bottom: 8px;
     min-width: 300px;
     padding: 6px 12px;
+
+    box-shadow: rgba(0,0,0,.8) 4px 8px 8px;
 }
 
 #games label { display: inline-block }
@@ -95,3 +102,50 @@ h1, h2 { text-shadow: #fff 0 0 15px; }
 }
 
 [owner="1"] > div, [owner="2"] > div { opacity: .3; }
+
+/* SNACKBAR */
+
+#snackbar {
+    visibility: hidden;
+    position: fixed;
+    z-index: 1;
+    bottom: 30px;
+    right: 0;
+    width: 100%;
+}
+
+#snackbar-content {
+    min-width: 250px;
+    margin: auto;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 2px;
+    padding: 12px;
+}
+
+#snackbar.show {
+    visibility: visible;
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}

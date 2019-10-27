@@ -1,4 +1,21 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿function showMessage(message) {
+    var x = $('#snackbar');
+    $('#snackbar-content').text(message);
+    x.addClass('show');
+    x.addClass('info');
+    setTimeout(function () {
+        x.removeClass('show');
+        x.removeClass('info');
+    }, 3000);
+}
 
-// Write your Javascript code.
+function showError(message) {
+    var x = $('#snackbar');
+    $('#snackbar-content').text(message);
+    x.addClass('show');
+    x.addClass('error');
+    setTimeout(function () {
+        x.removeClass('show');
+        x.removeClass('error');
+    }, 3000);
+}
