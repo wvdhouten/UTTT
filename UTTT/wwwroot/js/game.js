@@ -117,11 +117,8 @@ connection.on("Update",
 	});
 
 connection.start().then(function() {
-	connection.invoke("GetConnectionId")
-		.then(function(id) {
-			connectionId = id;
-			console.log(`connected: ${id}`);
-		});
+	console.log(`connected: ${connection.hub.id}`);
+
 	connection.invoke("GetGames")
 		.then(function(games) {
 			updateGames(games);

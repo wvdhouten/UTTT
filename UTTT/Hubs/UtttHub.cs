@@ -10,24 +10,26 @@ namespace UTTT.Hubs
 {
     public class UtttHub : Hub
     {
-        private readonly IGameManager _manager;
+        private readonly IGameManager _gameManager;
+        private readonly IPlayerManager _playerManager;
 
-        public UtttHub(IGameManager manager)
+        public UtttHub(IGameManager gameManager, IPlayerManager playerManager)
         {
-            _manager = manager;
+            _gameManager = gameManager;
+            _playerManager = playerManager;
         }
 
         public IDictionary<string, string> GetGames()
         {
-            return _manager.Games.Where(x => x.State.Winner == GameState.Owner.None)
+            return _gameManager.Games.Where(x => x.State.Winner == GameState.Owner.None)
                 .ToDictionary(x => x.State.Id, x => x.State.Player1.Name);
         }
 
-        public async Task Create(string playerName)
+        public async Task NewGame(string playerName)
         {
             try
             {
-                var game = _manager.CreateGame(Context.ConnectionId, playerName);
+                var game = _gameManager.CreateGame(Context.ConnectionId, playerName);
 
                 await Groups.AddToGroupAsync(Context.ConnectionId, game.State.Id);
                 await Clients.All.SendAsync("UpdateGames", GetGames());
@@ -38,11 +40,11 @@ namespace UTTT.Hubs
             }
         }
 
-        public async Task Join(string gameId, string playerName)
+        public async Task JoinGame(string gameId, string playerName)
         {
             try
             {
-                var game = _manager.JoinGame(gameId, Context.ConnectionId, playerName);
+                var game = _gameManager.JoinGame(gameId, Context.ConnectionId, playerName);
 
                 await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
                 await Clients.All.SendAsync("UpdateGames", GetGames());
@@ -59,7 +61,7 @@ namespace UTTT.Hubs
         {
             try
             {
-                var game = _manager.GetGameForPlayer(Context.ConnectionId);
+                var game = _gameManager.GetGameForPlayer(Context.ConnectionId);
                 if (game == null)
                     return;
 
@@ -73,27 +75,15 @@ namespace UTTT.Hubs
             }
         }
 
-        public string GetConnectionId()
-        {
-            try
-            {
-                return Context.ConnectionId;
-            }
-            catch (Exception e)
-            {
-                throw new HubException(e.Message, e);
-            }
-        }
-
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var game = _manager.GetGameForPlayer(Context.ConnectionId);
+            var game = _gameManager.GetGameForPlayer(Context.ConnectionId);
             if (game == null) { 
                 await base.OnDisconnectedAsync(exception);
                 return;
             }
 
-            _manager.Games.Remove(game);
+            _gameManager.Games.Remove(game);
             await Clients.OthersInGroup(game.State.Id).SendAsync("Disconnected", game.State);
             await Clients.All.SendAsync("UpdateGames", GetGames());
 
