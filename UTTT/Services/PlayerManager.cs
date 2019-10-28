@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UTTT.Abstractions;
+using UTTT.Games.Uttt.Models;
 using UTTT.Utils;
 
 namespace UTTT.Services
@@ -23,6 +24,13 @@ namespace UTTT.Services
             if (string.IsNullOrEmpty(name)) throw new ArgumentException("Name cannot be empty.", nameof(name));
 
             if (!Players.ContainsKey(id)) throw new ArgumentException("Player id unknown.", nameof(id));
+        }
+
+        public Player GetById(string id)
+        {
+            if (!Players.ContainsKey(id)) throw new ArgumentException("Player id unknown.", nameof(id));
+
+            return new Player(id, Players[id]);
         }
     }
 }

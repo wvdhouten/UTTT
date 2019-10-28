@@ -21,8 +21,9 @@ namespace UTTT
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IGameManager, GameManager>();
+            services.AddSingleton<IPlayerManager, PlayerManager>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddSignalR();
+            services.AddSignalR(o => o.EnableDetailedErrors = true);
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

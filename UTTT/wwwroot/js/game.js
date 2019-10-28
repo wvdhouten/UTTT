@@ -1,66 +1,69 @@
-﻿'use strict';
+﻿"use strict";
 
-var connection = new signalR.HubConnectionBuilder().withUrl('/utttHub').withAutomaticReconnect().build();
-var connectionId;
+var connection = new signalR.HubConnectionBuilder().withUrl("/utttHub").build();
+var player = {};
 
 $(document).ready(function() {
-    $('#games').on('click', '.join-game-button', function () { joinGame(this); });
-    $('#board').on('click', '.field', function () { claimField($(this)) });
-
-    restorePlayerData();
+    $("#games").on("click", ".join-game-button", function() { joinGame(this); });
+    $("#board").on("click", ".field", function() { claimField($(this)); });
 });
 
-function setPlayerData(name, playerId) {
-    localStorage.setItem('name', name);
-    localStorage.setItem('playerId', playerId);
+function rename() {
+    const name = $("#name-field").val();
+    identify(name);
 }
 
-function restorePlayerData() {
-    const name = localStorage.getItem('name');
-    const playerId = localStorage.getItem('playerId');
+function identify(name) {
+    const playerId = localStorage.getItem("playerId");
+    connection.invoke("Identify", name, playerId)
+        .then(function(playerId) {
+            setPlayerData(name, playerId);
 
+            $("#login-container").addClass("hidden");
+            $("#lobby-container").removeClass("hidden");
+            $("#name").text(name);
+
+            getGames();
+        }).catch(function(err) {
+            console.error(err.toString());
+        });
+}
+
+function setPlayerData(name, playerId) {
+    player.name = name;
+    player.id = playerId;
+    localStorage.setItem("name", name);
+    localStorage.setItem("playerId", playerId);
+}
+
+function tryRestorePlayerData() {
+    const name = localStorage.getItem("name");
     if (name) {
-        alert(name);
+        identify(name);
     }
 }
 
 function newGame() {
-    const name = promptName();
-    if (!name) {
-        return;
-    }
-
-    setPlayerData(name, 1);
-
-    connection.invoke('NewGame', name).then(function() {
-        $('#game-selector').addClass('hidden');
-        $('#game').removeClass('hidden');
-    }).catch(function (err) {
+    connection.invoke("NewGame", player.id).then(function() {
+        $("#lobby-container").addClass("hidden");
+        $("#game").removeClass("hidden");
+    }).catch(function(err) {
         console.error(err.toString());
     });
 }
 
 function joinGame(button) {
-    const gameId = $(button).attr('game-id');
+    const gameId = $(button).attr("game-id");
     if (!gameId) {
         return;
     }
 
-    const name = promptName();
-    if (!name) {
-        return;
-    }
-
-    connection.invoke('JoinGame', gameId, name).then(function() {
-        $('#game-selector').addClass('hidden');
-        $('#game').removeClass('hidden');
-    }).catch(function (err) {
+    connection.invoke("JoinGame", gameId, player.id).then(function() {
+        $("#lobby-container").addClass("hidden");
+        $("#game").removeClass("hidden");
+    }).catch(function(err) {
         console.error(err.toString());
     });
-}
-
-function promptName() {
-    return prompt('Name');
 }
 
 function claimField(field) {
@@ -69,7 +72,7 @@ function claimField(field) {
     const area = field.parent();
     const areaIndex = area.index();
 
-    connection.invoke('ClaimField', areaIndex, fieldIndex).catch(function (err, re) {
+    connection.invoke("ClaimField", areaIndex, fieldIndex).catch(function(err) {
         console.error(err.toString());
     });
 }
@@ -81,15 +84,15 @@ function updateState(state) {
 }
 
 function updatePlayers(state) {
-    const player1 = state.player1.name ? state.player1.name : '';
-    const player2 = state.player2.name ? state.player2.name : '';
+    const player1 = state.player1.name ? state.player1.name : "";
+    const player2 = state.player2.name ? state.player2.name : "";
 
-    $('#players').text(`${player1} - ${player2}`);
+    $("#players").text(`${player1} - ${player2}`);
 }
 
 function updateBoard(state) {
-    const board = $('#board');
-    board.attr('owner', state.winner);
+    const board = $("#board");
+    board.attr("owner", state.winner);
 
     for (let areaIndex in state.board) {
         if (!state.board.hasOwnProperty(areaIndex)) {
@@ -98,31 +101,31 @@ function updateBoard(state) {
 
         const area = board.children().eq(areaIndex);
         const areaState = state.board[areaIndex];
-        area.attr('owner', areaState['owner']);
+        area.attr("owner", areaState["owner"]);
 
-        const fields = areaState['fields'];
+        const fields = areaState["fields"];
         for (let index in fields) {
             if (!fields.hasOwnProperty(index)) {
                 return;
             }
 
             const field = area.children().eq(index);
-            field.attr('owner', fields[index]['owner']);
+            field.attr("owner", fields[index]["owner"]);
         }
-    };
+    }
 }
 
 function updateActivity(state) {
-    const board = $('#board');
+    const board = $("#board");
 
-    board.removeClass('active');
-    board.children().removeClass('active');
-    if (state.activePlayer === connectionId && state.winner === 0) {
+    board.removeClass("active");
+    board.children().removeClass("active");
+    if (state.activePlayer === player.id && state.winner === 0) {
         if (state.activeArea >= 0)
-            board.children().eq(state.activeArea).addClass('active');
+            board.children().eq(state.activeArea).addClass("active");
         else
-            board.addClass('active');
-        showMessage('It\'s your turn!');
+            board.addClass("active");
+        showMessage("It's your turn!");
     } else if (state.winner === 1) {
         showMessage(`${state.player1.name} Wins!`);
     } else if (state.winner === 2) {
@@ -131,7 +134,7 @@ function updateActivity(state) {
 }
 
 function updateGames(games) {
-    const gamesElement = $('#games');
+    const gamesElement = $("#games");
     gamesElement.empty();
 
     for (let game in games) {
@@ -143,28 +146,30 @@ function updateGames(games) {
     }
 }
 
-connection.on('Error',
-    function (message) {
+connection.on("Error",
+    function(message) {
         showError(message);
     });
 
-connection.on('UpdateGames',
+connection.on("UpdateGames",
     function(games) {
         updateGames(games);
     });
 
-connection.on('Update',
+connection.on("Update",
     function(state) {
         updateState(state);
     });
 
 connection.start().then(function() {
-	console.log(`connected: ${connection.hub.id}`);
-
-	connection.invoke("GetGames")
-		.then(function(games) {
-			updateGames(games);
-		});
-}).catch(function(err) {
-    console.error(err.toString());
+    tryRestorePlayerData();
 });
+
+function getGames() {
+    connection.invoke("GetGames")
+        .then(function(games) {
+            updateGames(games);
+        }).catch(function(err) {
+            console.error(err.toString());
+        });
+}

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using UTTT.Abstractions;
@@ -20,18 +19,42 @@ namespace UTTT.Games.Uttt
             _playerManager = playerManager;
         }
 
+        public string Identify(string name, string playerId)
+        {
+            if (string.IsNullOrEmpty(playerId))
+            {
+                playerId = _playerManager.Register(name);
+            }
+            else
+            {
+
+                try
+                {
+                    _playerManager.Rename(playerId, name);
+                }
+                catch
+                {
+                    playerId = _playerManager.Register(name);
+                }
+            }
+
+            Context.Items.Add("PlayerId", playerId);
+            return playerId;
+        }
+
         public IDictionary<string, string> GetGames()
         {
-            return _gameManager.Games.Where(x => x.State.Winner == GameState.Owner.None)
+            return _gameManager.Games.Where(x => x.State.Winner == GameState.Owner.None && x.State.Player2 == null)
                 .ToDictionary(x => x.State.Id, x => x.State.Player1.Name);
         }
 
-        public async Task NewGame(string playerName)
+        public async Task NewGame(string playerId)
         {
             try
             {
-                var game = _gameManager.CreateGame(Context.ConnectionId, playerName);
+                var game = _gameManager.CreateGame(playerId, _playerManager.GetById(playerId).Name);
 
+                Context.Items.Add("CurrentGame", game.State.Id);
                 await Groups.AddToGroupAsync(Context.ConnectionId, game.State.Id);
                 await Clients.All.SendAsync("UpdateGames", GetGames());
             }
@@ -41,12 +64,13 @@ namespace UTTT.Games.Uttt
             }
         }
 
-        public async Task JoinGame(string gameId, string playerName)
+        public async Task JoinGame(string gameId, string playerId)
         {
             try
             {
-                var game = _gameManager.JoinGame(gameId, Context.ConnectionId, playerName);
+                var game = _gameManager.JoinGame(gameId, playerId, _playerManager.GetById(playerId).Name);
 
+                Context.Items.Add("CurrentGame", gameId);
                 await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
                 await Clients.All.SendAsync("UpdateGames", GetGames());
 
@@ -60,13 +84,14 @@ namespace UTTT.Games.Uttt
 
         public async Task ClaimField(int area, int field)
         {
+            var playerId = (string)Context.Items["PlayerId"];
             try
             {
-                var game = _gameManager.GetGameForPlayer(Context.ConnectionId);
+                var game = _gameManager.GetGameForPlayer(playerId);
                 if (game == null)
                     return;
 
-                game.ClaimField(Context.ConnectionId, area, field);
+                game.ClaimField(playerId, area, field);
 
                 await Clients.Group(game.State.Id).SendAsync("Update", game.State);
             }
@@ -84,8 +109,11 @@ namespace UTTT.Games.Uttt
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var game = _gameManager.GetGameForPlayer(Context.ConnectionId);
-            if (game == null) { 
+            var currentGame = (string)Context.Items["CurrentGame"];
+
+            var game = _gameManager.GetGameForPlayer(currentGame);
+            if (game == null)
+            {
                 await base.OnDisconnectedAsync(exception);
                 return;
             }
