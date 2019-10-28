@@ -1,12 +1,28 @@
 ﻿'use strict';
 
-var connection = new signalR.HubConnectionBuilder().withUrl('/utttHub').build();
+var connection = new signalR.HubConnectionBuilder().withUrl('/utttHub').withAutomaticReconnect().build();
 var connectionId;
 
 $(document).ready(function() {
     $('#games').on('click', '.join-game-button', function () { joinGame(this); });
-    $('#board').on('click', '.field', function () { claimField($(this))});
+    $('#board').on('click', '.field', function () { claimField($(this)) });
+
+    restorePlayerData();
 });
+
+function setPlayerData(name, playerId) {
+    localStorage.setItem('name', name);
+    localStorage.setItem('playerId', playerId);
+}
+
+function restorePlayerData() {
+    const name = localStorage.getItem('name');
+    const playerId = localStorage.getItem('playerId');
+
+    if (name) {
+        alert(name);
+    }
+}
 
 function newGame() {
     const name = promptName();
@@ -14,12 +30,13 @@ function newGame() {
         return;
     }
 
+    setPlayerData(name, 1);
+
     connection.invoke('NewGame', name).then(function() {
         $('#game-selector').addClass('hidden');
         $('#game').removeClass('hidden');
     }).catch(function (err) {
-        // TODO: Inform user.
-        return console.error(err.toString());
+        console.error(err.toString());
     });
 }
 
@@ -38,8 +55,7 @@ function joinGame(button) {
         $('#game-selector').addClass('hidden');
         $('#game').removeClass('hidden');
     }).catch(function (err) {
-        // TODO: Inform user.
-        return console.error(err.toString());
+        console.error(err.toString());
     });
 }
 
@@ -53,8 +69,8 @@ function claimField(field) {
     const area = field.parent();
     const areaIndex = area.index();
 
-    connection.invoke('ClaimField', areaIndex, fieldIndex).catch(function(err) {
-        return console.error(err.toString());
+    connection.invoke('ClaimField', areaIndex, fieldIndex).catch(function (err, re) {
+        console.error(err.toString());
     });
 }
 
@@ -127,6 +143,11 @@ function updateGames(games) {
     }
 }
 
+connection.on('Error',
+    function (message) {
+        showError(message);
+    });
+
 connection.on('UpdateGames',
     function(games) {
         updateGames(games);
@@ -148,5 +169,5 @@ connection.start().then(function() {
             updateGames(games);
         });
 }).catch(function(err) {
-    return console.error(err.toString());
+    console.error(err.toString());
 });

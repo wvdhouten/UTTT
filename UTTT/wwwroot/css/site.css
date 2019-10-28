@@ -124,6 +124,10 @@ h1, h2, h3 { text-shadow: #fff 0 0 15px; }
     padding: 12px;
 }
 
+#snackbar.error > #snackbar-content {
+    background-color: #800000;
+}
+
 #snackbar.show {
     visibility: visible;
     -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;

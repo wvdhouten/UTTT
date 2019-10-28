@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using UTTT.Abstractions;
@@ -34,7 +35,7 @@ namespace UTTT.Games.Uttt
             }
             catch (Exception e)
             {
-                throw new HubException(e.Message, e);
+                await HandleException(e);
             }
         }
 
@@ -51,7 +52,7 @@ namespace UTTT.Games.Uttt
             }
             catch (Exception e)
             {
-                throw new HubException(e.Message, e);
+                await HandleException(e);
             }
         }
 
@@ -69,11 +70,17 @@ namespace UTTT.Games.Uttt
             }
             catch (Exception e)
             {
-                throw new HubException(e.Message, e);
+                await HandleException(e);
             }
         }
 
-        public string GetConnectionId()
+        private async Task HandleException(Exception e)
+        {
+            await Clients.Caller.SendAsync("Error", e.Message);
+            throw new HubException(e.Message);
+        }
+
+        public async Task<string> GetConnectionId()
         {
             try
             {
@@ -81,7 +88,8 @@ namespace UTTT.Games.Uttt
             }
             catch (Exception e)
             {
-                throw new HubException(e.Message, e);
+                await HandleException(e);
+                throw;
             }
         }
 
