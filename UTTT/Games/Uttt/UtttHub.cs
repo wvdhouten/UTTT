@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using UTTT.Abstractions;
 using UTTT.Games.Uttt.Models;
 
-namespace UTTT.Hubs
+namespace UTTT.Games.Uttt
 {
     public class UtttHub : Hub
     {
@@ -36,7 +37,7 @@ namespace UTTT.Hubs
             }
             catch (Exception e)
             {
-                throw new HubException(e.Message, e);
+                await HandleException(e);
             }
         }
 
@@ -53,7 +54,7 @@ namespace UTTT.Hubs
             }
             catch (Exception e)
             {
-                throw new HubException(e.Message, e);
+                await HandleException(e);
             }
         }
 
@@ -71,8 +72,14 @@ namespace UTTT.Hubs
             }
             catch (Exception e)
             {
-                throw new HubException(e.Message, e);
+                await HandleException(e);
             }
+        }
+
+        private async Task HandleException(Exception e)
+        {
+            await Clients.Caller.SendAsync("Error", e.Message);
+            throw new HubException(e.Message);
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)

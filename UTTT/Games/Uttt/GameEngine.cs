@@ -21,7 +21,7 @@ namespace UTTT.Games.Uttt
             if (State.ActiveArea > -1 && State.ActiveArea != area)
                 throw new Exception("Field is not in the active area.");
 
-            var selectedArea = State.Areas[area];
+            var selectedArea = State.Board[area];
             if (selectedArea.Owner != GameState.Owner.None)
                 throw new Exception("Area is already won.");
 
@@ -33,7 +33,7 @@ namespace UTTT.Games.Uttt
 
             CalculateGameState(selectedArea);
 
-            var nextArea = State.Areas[field];
+            var nextArea = State.Board[field];
             State.ActiveArea = nextArea.Owner == GameState.Owner.None ? field : -1;
 
             SetNextPlayer(playerId);
@@ -126,10 +126,10 @@ namespace UTTT.Games.Uttt
         {
             for (var i = 0; i < 3; i++)
             {
-                if (State.Areas[i].Owner != State.Areas[i + 3].Owner ||
-                    State.Areas[i].Owner != State.Areas[i + 6].Owner) continue;
+                if (State.Board[i].Owner != State.Board[i + 3].Owner ||
+                    State.Board[i].Owner != State.Board[i + 6].Owner) continue;
 
-                var owner = State.Areas[i].Owner;
+                var owner = State.Board[i].Owner;
                 if (owner != GameState.Owner.None)
                     return owner;
             }
@@ -141,10 +141,10 @@ namespace UTTT.Games.Uttt
         {
             for (var i = 0; i < 9; i += 3)
             {
-                if (State.Areas[i].Owner != State.Areas[i + 1].Owner ||
-                    State.Areas[i].Owner != State.Areas[i + 2].Owner) continue;
+                if (State.Board[i].Owner != State.Board[i + 1].Owner ||
+                    State.Board[i].Owner != State.Board[i + 2].Owner) continue;
 
-                return State.Areas[i].Owner;
+                return State.Board[i].Owner;
             }
 
             return GameState.Owner.None;
@@ -152,18 +152,18 @@ namespace UTTT.Games.Uttt
 
         private GameState.Owner CheckGameDiagonals()
         {
-            if (State.Areas[0].Owner == State.Areas[4].Owner &&
-                State.Areas[0].Owner == State.Areas[8].Owner)
+            if (State.Board[0].Owner == State.Board[4].Owner &&
+                State.Board[0].Owner == State.Board[8].Owner)
             {
-                var owner = State.Areas[0].Owner;
+                var owner = State.Board[0].Owner;
                 if (owner != GameState.Owner.None)
                     return owner;
             }
 
-            if (State.Areas[2].Owner == State.Areas[4].Owner &&
-                State.Areas[2].Owner == State.Areas[6].Owner)
+            if (State.Board[2].Owner == State.Board[4].Owner &&
+                State.Board[2].Owner == State.Board[6].Owner)
             {
-                var owner = State.Areas[2].Owner;
+                var owner = State.Board[2].Owner;
                 if (owner != GameState.Owner.None)
                     return owner;
             }
