@@ -5,14 +5,14 @@ namespace UTTT.Games.Uttt
 {
     public class GameEngine
     {
-        public GameState State { get; } = new GameState();
+        public Game State { get; } = new Game();
 
         public void ClaimField(string playerId, int area, int field)
         {
             if (State.Player1 == null || State.Player2 == null)
                 throw new Exception("Game has not started.");
 
-            if (State.Winner != GameState.Owner.None)
+            if (State.Winner != Game.Owner.None)
                 throw new Exception("Game has ended.");
 
             if (State.ActivePlayer != playerId)
@@ -22,11 +22,11 @@ namespace UTTT.Games.Uttt
                 throw new Exception("Field is not in the active area.");
 
             var selectedArea = State.Board[area];
-            if (selectedArea.Owner != GameState.Owner.None)
+            if (selectedArea.Owner != Game.Owner.None)
                 throw new Exception("Area is already won.");
 
             var selectedField = selectedArea.Fields[field];
-            if (selectedField.Owner != GameState.Owner.None)
+            if (selectedField.Owner != Game.Owner.None)
                 throw new Exception("Field has already been claimed.");
 
             selectedField.Owner = ResolveOwner(playerId);
@@ -34,14 +34,14 @@ namespace UTTT.Games.Uttt
             CalculateGameState(selectedArea);
 
             var nextArea = State.Board[field];
-            State.ActiveArea = nextArea.Owner == GameState.Owner.None ? field : -1;
+            State.ActiveArea = nextArea.Owner == Game.Owner.None ? field : -1;
 
             SetNextPlayer(playerId);
         }
 
         private void CalculateGameState(Area selectedArea)
         {
-            if (selectedArea.Owner == GameState.Owner.None)
+            if (selectedArea.Owner == Game.Owner.None)
                 CheckAreaOwner(selectedArea);
 
             CheckGameWinner();
@@ -49,17 +49,17 @@ namespace UTTT.Games.Uttt
 
         private static void CheckAreaOwner(Area selectedArea)
         {
-            GameState.Owner owner;
+            Game.Owner owner;
 
-            if ((owner = CheckColumns(selectedArea)) != GameState.Owner.None)
+            if ((owner = CheckColumns(selectedArea)) != Game.Owner.None)
                 selectedArea.Owner = owner;
-            else if ((owner = CheckRows(selectedArea)) != GameState.Owner.None)
+            else if ((owner = CheckRows(selectedArea)) != Game.Owner.None)
                 selectedArea.Owner = owner;
-            else if ((owner = CheckDiagonals(selectedArea)) != GameState.Owner.None)
+            else if ((owner = CheckDiagonals(selectedArea)) != Game.Owner.None)
                 selectedArea.Owner = owner;
         }
 
-        private static GameState.Owner CheckColumns(Area selectedArea)
+        private static Game.Owner CheckColumns(Area selectedArea)
         {
             for (var i = 0; i < 3; i++)
             {
@@ -67,14 +67,14 @@ namespace UTTT.Games.Uttt
                     selectedArea.Fields[i].Owner != selectedArea.Fields[i + 6].Owner) continue;
 
                 var owner = selectedArea.Fields[i].Owner;
-                if (owner != GameState.Owner.None)
+                if (owner != Game.Owner.None)
                     return owner;
             }
 
-            return GameState.Owner.None;
+            return Game.Owner.None;
         }
 
-        private static GameState.Owner CheckRows(Area selectedArea)
+        private static Game.Owner CheckRows(Area selectedArea)
         {
             for (var i = 0; i < 9; i += 3)
             {
@@ -82,20 +82,20 @@ namespace UTTT.Games.Uttt
                     selectedArea.Fields[i].Owner != selectedArea.Fields[i + 2].Owner) continue;
 
                 var owner = selectedArea.Fields[i].Owner;
-                if (owner != GameState.Owner.None)
+                if (owner != Game.Owner.None)
                     return owner;
             }
 
-            return GameState.Owner.None;
+            return Game.Owner.None;
         }
 
-        private static GameState.Owner CheckDiagonals(Area selectedArea)
+        private static Game.Owner CheckDiagonals(Area selectedArea)
         {
             if (selectedArea.Fields[0].Owner == selectedArea.Fields[4].Owner &&
                 selectedArea.Fields[0].Owner == selectedArea.Fields[8].Owner)
             {
                 var owner = selectedArea.Fields[0].Owner;
-                if (owner != GameState.Owner.None)
+                if (owner != Game.Owner.None)
                     return owner;
             }
 
@@ -103,26 +103,26 @@ namespace UTTT.Games.Uttt
                 selectedArea.Fields[2].Owner == selectedArea.Fields[6].Owner)
             {
                 var owner = selectedArea.Fields[2].Owner;
-                if (owner != GameState.Owner.None)
+                if (owner != Game.Owner.None)
                     return owner;
             }
 
-            return GameState.Owner.None;
+            return Game.Owner.None;
         }
 
         private void CheckGameWinner()
         {
-            GameState.Owner owner;
+            Game.Owner owner;
 
-            if ((owner = CheckGameColumns()) != GameState.Owner.None)
+            if ((owner = CheckGameColumns()) != Game.Owner.None)
                 State.Winner = owner;
-            else if ((owner = CheckGameRows()) != GameState.Owner.None)
+            else if ((owner = CheckGameRows()) != Game.Owner.None)
                 State.Winner = owner;
-            else if ((owner = CheckGameDiagonals()) != GameState.Owner.None)
+            else if ((owner = CheckGameDiagonals()) != Game.Owner.None)
                 State.Winner = owner;
         }
 
-        private GameState.Owner CheckGameColumns()
+        private Game.Owner CheckGameColumns()
         {
             for (var i = 0; i < 3; i++)
             {
@@ -130,14 +130,14 @@ namespace UTTT.Games.Uttt
                     State.Board[i].Owner != State.Board[i + 6].Owner) continue;
 
                 var owner = State.Board[i].Owner;
-                if (owner != GameState.Owner.None)
+                if (owner != Game.Owner.None)
                     return owner;
             }
 
-            return GameState.Owner.None;
+            return Game.Owner.None;
         }
 
-        private GameState.Owner CheckGameRows()
+        private Game.Owner CheckGameRows()
         {
             for (var i = 0; i < 9; i += 3)
             {
@@ -147,16 +147,16 @@ namespace UTTT.Games.Uttt
                 return State.Board[i].Owner;
             }
 
-            return GameState.Owner.None;
+            return Game.Owner.None;
         }
 
-        private GameState.Owner CheckGameDiagonals()
+        private Game.Owner CheckGameDiagonals()
         {
             if (State.Board[0].Owner == State.Board[4].Owner &&
                 State.Board[0].Owner == State.Board[8].Owner)
             {
                 var owner = State.Board[0].Owner;
-                if (owner != GameState.Owner.None)
+                if (owner != Game.Owner.None)
                     return owner;
             }
 
@@ -164,18 +164,18 @@ namespace UTTT.Games.Uttt
                 State.Board[2].Owner == State.Board[6].Owner)
             {
                 var owner = State.Board[2].Owner;
-                if (owner != GameState.Owner.None)
+                if (owner != Game.Owner.None)
                     return owner;
             }
 
-            return GameState.Owner.None;
+            return Game.Owner.None;
         }
 
-        private GameState.Owner ResolveOwner(string playerId)
+        private Game.Owner ResolveOwner(string playerId)
         {
-            if (State.Player1.Id == playerId) return GameState.Owner.One;
+            if (State.Player1.Id == playerId) return Game.Owner.One;
 
-            if (State.Player2.Id == playerId) return GameState.Owner.Two;
+            if (State.Player2.Id == playerId) return Game.Owner.Two;
 
             throw new Exception("Cannot resolve player.");
         }

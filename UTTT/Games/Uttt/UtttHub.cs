@@ -19,71 +19,63 @@ namespace UTTT.Games.Uttt
             _playerManager = playerManager;
         }
 
-        public string Identify(string name, string playerId)
+        public string Identify(string id, string name)
         {
-            if (string.IsNullOrEmpty(playerId))
-            {
-                playerId = _playerManager.Register(name);
-            }
-            else
-            {
-
-                try
-                {
-                    _playerManager.Rename(playerId, name);
-                }
-                catch
-                {
-                    playerId = _playerManager.Register(name);
-                }
-            }
-
-            Context.Items.Add("PlayerId", playerId);
-            return playerId;
+            id = _playerManager.RegisterOrRename(id, name);
+            Context.Items.Add("PlayerId", id);
+            return id;
         }
 
         public IDictionary<string, string> GetGames()
         {
-            return _gameManager.Games.Where(x => x.State.Winner == GameState.Owner.None && x.State.Player2 == null)
+            return _gameManager.Games.Where(x => x.State.Winner == Game.Owner.None 
+                                                 && x.State.Player2 == null)
                 .ToDictionary(x => x.State.Id, x => x.State.Player1.Name);
         }
 
-        public async Task NewGame(string playerId)
+        public async Task<string> NewGame()
         {
             try
             {
-                var game = _gameManager.CreateGame(playerId, _playerManager.GetById(playerId).Name);
+                var playerId = Context.GetPlayerId();
+                var game = _gameManager.CreateGame(playerId, _playerManager.GetPlayerName(playerId));
 
-                Context.Items.Add("CurrentGame", game.State.Id);
                 await Groups.AddToGroupAsync(Context.ConnectionId, game.State.Id);
-                await Clients.All.SendAsync("UpdateGames", GetGames());
+                await Clients.All.SendAsync("GamesUpdate", GetGames());
+
+                return game.State.Id;
             }
             catch (Exception e)
             {
                 await HandleException(e);
+                throw;
             }
         }
 
-        public async Task JoinGame(string gameId, string playerId)
+        public async Task<string> JoinGame(string gameId)
         {
             try
             {
-                var game = _gameManager.JoinGame(gameId, playerId, _playerManager.GetById(playerId).Name);
+                var playerId = Context.GetPlayerId();
+                var game = _gameManager.JoinGame(gameId, playerId, _playerManager.GetPlayerName(playerId));
 
-                Context.Items.Add("CurrentGame", gameId);
-                await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-                await Clients.All.SendAsync("UpdateGames", GetGames());
+                await Groups.AddToGroupAsync(Context.ConnectionId, game.State.Id);
+                await Clients.All.SendAsync("GamesUpdate", GetGames());
 
-                await Clients.Group(gameId).SendAsync("Update", game.State);
+                await Clients.Group(gameId).SendAsync("GameUpdate", game.State);
+
+                return game.State.Id;
             }
             catch (Exception e)
             {
                 await HandleException(e);
+                throw;
             }
         }
 
-        public async Task ClaimField(int area, int field)
+        public async Task ClaimField(string gameId, int area, int field)
         {
+            // TODO: continue work here.
             var playerId = (string)Context.Items["PlayerId"];
             try
             {
@@ -93,7 +85,7 @@ namespace UTTT.Games.Uttt
 
                 game.ClaimField(playerId, area, field);
 
-                await Clients.Group(game.State.Id).SendAsync("Update", game.State);
+                await Clients.Group(game.State.Id).SendAsync("GameUpdate", game.State);
             }
             catch (Exception e)
             {
@@ -120,7 +112,7 @@ namespace UTTT.Games.Uttt
 
             _gameManager.Games.Remove(game);
             await Clients.OthersInGroup(game.State.Id).SendAsync("Disconnected", game.State);
-            await Clients.All.SendAsync("UpdateGames", GetGames());
+            await Clients.All.SendAsync("GamesUpdate", GetGames());
 
             await base.OnDisconnectedAsync(exception);
         }

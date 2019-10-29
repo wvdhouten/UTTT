@@ -10,27 +10,28 @@ namespace UTTT.Services
     {
         private IDictionary<string, string> Players { get; } = new Dictionary<string, string>();
 
-        public string Register(string name)
+        public string GetPlayerName(string id)
         {
-            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Name cannot be empty.", nameof(name));
+            if (!Players.ContainsKey(id))
+                throw new Exception("Player does not exist.");
 
-            var id = StringUtil.RandomString(8);
+            return Players[id];
+        }
+
+        public string RegisterOrRename(string id, string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                throw new Exception("Name cannot be empty.");
+
+            if (Players.ContainsKey(id))
+            {
+                Players[id] = name;
+                return id;
+            }
+
+            StringUtil.RandomString(8);
             Players.Add(id, name);
             return id;
-        }
-
-        public void Rename(string id, string name)
-        {
-            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Name cannot be empty.", nameof(name));
-
-            if (!Players.ContainsKey(id)) throw new ArgumentException("Player id unknown.", nameof(id));
-        }
-
-        public Player GetById(string id)
-        {
-            if (!Players.ContainsKey(id)) throw new ArgumentException("Player id unknown.", nameof(id));
-
-            return new Player(id, Players[id]);
         }
     }
 }

@@ -2,6 +2,6 @@
 {
     public class Field
     {
-        public GameState.Owner Owner { get; set; }
+        public Game.Owner Owner { get; set; }
     }
 }

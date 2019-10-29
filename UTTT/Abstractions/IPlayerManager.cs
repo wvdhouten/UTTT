@@ -4,10 +4,8 @@ namespace UTTT.Abstractions
 {
     public interface IPlayerManager
     {
-        string Register(string name);
+        string RegisterOrRename(string id, string name);
 
-        void Rename(string id, string name);
-
-        Player GetById(string id);
+        string GetPlayerName(string id);
     }
 }

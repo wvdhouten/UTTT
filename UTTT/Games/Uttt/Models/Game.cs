@@ -1,6 +1,6 @@
 ﻿namespace UTTT.Games.Uttt.Models
 {
-    public class GameState
+    public class Game
     {
         public enum Owner
         {
