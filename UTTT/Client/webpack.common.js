@@ -4,8 +4,7 @@ const devMode = process.env.NODE_ENV !== 'production';
 
 module.exports = {
   entry: {
-    main: ['./scripts/main.ts', './css/site.scss'],
-    components: ['./components/index.ts']
+    main: ['./scripts/main.ts', './css/site.scss']
   },
   module: {
     rules: [

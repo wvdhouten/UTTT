@@ -13,6 +13,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Client\css\site.scss" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Client\css\site.scss">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.6" />
     <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.76" />

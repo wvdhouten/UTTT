@@ -1,0 +1,1 @@
+﻿export * from './uttt-game/uttt-game.component'
