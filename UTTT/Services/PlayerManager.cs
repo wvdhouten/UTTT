@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UTTT.Abstractions;
-using UTTT.Games.Uttt.Models;
 using UTTT.Utils;
 
 namespace UTTT.Services

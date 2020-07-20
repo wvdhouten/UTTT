@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using UTTT.Abstractions;
 using UTTT.Games.Uttt;
 using UTTT.Services;
@@ -20,13 +22,20 @@ namespace UTTT
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddConsole();
+                loggingBuilder.AddDebug();
+            });
+
             services.AddSingleton<IGameManager, GameManager>();
             services.AddSingleton<IPlayerManager, PlayerManager>();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddRazorPages();
             services.AddSignalR(o => o.EnableDetailedErrors = true);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -40,9 +49,24 @@ namespace UTTT
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseCookiePolicy();
-            app.UseMvc();
-            app.UseSignalR(routes => { routes.MapHub<UtttHub>("/utttHub"); });
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapRazorPages();
+                endpoints.MapHub<UtttHub>("/utttHub");
+            });
+            app.UseSpa(spa =>
+            {
+                spa.Options.SourcePath = "Client";
+
+                if (env.IsDevelopment())
+                {
+                    // This isn't actually angular, but it runs the webpack watcher.
+                    spa.UseAngularCliServer("start");
+                }
+            });
         }
     }
 }
