@@ -4,12 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using UTTT.Abstractions;
+using UTTT.Abstractions.Models;
 using UTTT.Games.Uttt.Models;
 
 namespace UTTT.Games.Uttt
 {
     public class UtttHub : Hub
     {
+        const string LobbyGroupName = "Lobby";
+
         private readonly IGameManager _gameManager;
         private readonly IPlayerManager _playerManager;
 
@@ -17,6 +20,22 @@ namespace UTTT.Games.Uttt
         {
             _gameManager = gameManager;
             _playerManager = playerManager;
+        }
+
+        public override async Task OnConnectedAsync()
+        {
+            await base.OnConnectedAsync();
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, LobbyGroupName);
+            await Clients.Group(LobbyGroupName).SendAsync("connected", Context.ConnectionId);
+        }
+
+        public LobbyInfo GetLobbyInfo()
+        {
+            return new LobbyInfo {
+                Games = { "Hello" },
+                Players = { "World!" }
+            };
         }
 
         public string Identify(string id, string name)

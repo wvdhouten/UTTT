@@ -29,11 +29,4 @@
     <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="2.1.76" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Client\scripts\uttt\components\uttt-game\" />
-    <Folder Include="Client\scripts\uttt\components\uttt-lobby\" />
-    <Folder Include="Client\scripts\uttt\components\uttt-login\" />
-    <Folder Include="Client\scripts\models\" />
-  </ItemGroup>
-
 </Project>
