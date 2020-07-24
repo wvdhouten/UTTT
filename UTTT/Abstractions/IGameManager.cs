@@ -7,9 +7,9 @@ namespace UTTT.Abstractions
     {
         IList<GameEngine> Games { get; }
 
-        GameEngine CreateGame(string contextConnectionId, string playerName);
+        GameEngine CreateGame(string contextConnectionId);
 
-        GameEngine JoinGame(string gameId, string contextConnectionId, string playerName);
+        GameEngine JoinGame(string gameId, string contextConnectionId);
 
         GameEngine GetGameById(string gameId);
 
