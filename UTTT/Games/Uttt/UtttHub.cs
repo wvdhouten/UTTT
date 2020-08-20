@@ -5,11 +5,14 @@ using Microsoft.AspNetCore.SignalR;
 using UTTT.Abstractions;
 using UTTT.Abstractions.Models;
 using UTTT.Games.Uttt.Models;
+using UTTT.Utils;
 
 namespace UTTT.Games.Uttt
 {
     public class UtttHub : Hub
     {
+        private static readonly ConnectionMapping<string> Connections = new ConnectionMapping<string>();
+
         private static readonly IList<string> LobbyConnections = new List<string>();
         const string LobbyGroupName = "Lobby";
 
@@ -24,18 +27,22 @@ namespace UTTT.Games.Uttt
         {
             await base.OnConnectedAsync();
 
-            LobbyConnections.Add(Context.ConnectionId);
-            await Groups.AddToGroupAsync(Context.ConnectionId, LobbyGroupName);
-            await Clients.Group(LobbyGroupName).SendAsync("joined", Context.ConnectionId);
+            // Register connection when using identity/authentication.
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             await base.OnDisconnectedAsync(exception);
 
-            LobbyConnections.Remove(Context.ConnectionId);
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, LobbyGroupName);
-            await Clients.Group(LobbyGroupName).SendAsync("left", Context.ConnectionId);
+            // Unregister connection when using identity/authentication.
+        }
+
+        public async Task Identify(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                id = StringUtil.RandomString(8);
+            }
         }
 
         public LobbyInfo GetLobbyInfo()
@@ -63,6 +70,11 @@ namespace UTTT.Games.Uttt
         public async Task Reject(string playerId)
         {
             await Clients.Client(playerId).SendAsync("rejected", Context.ConnectionId);
+        }
+
+        public async Task Spectate(string gameId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
         }
 
         public async Task<string> NewGame()
